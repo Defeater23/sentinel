@@ -8,9 +8,22 @@ logger = logging.getLogger("sentinel.classifier_loader")
 
 CLASS_NAMES = [
     "car", "truck", "bus", "motorcycle", "bicycle", "pedestrian",
-    "auto_rickshaw", "cattle", "dog", "pothole", "construction_debris",
-    "speed_breaker", "cycle_rickshaw", "handcart", "tractor"
+    "rider", "auto_rickshaw", "animal", "traffic_sign", "traffic_light",
+    "vehicle_fallback", "pothole", "crack"
 ]
+
+class_mapping_path = os.path.join(os.path.dirname(__file__), "class_mapping.json")
+try:
+    if os.path.exists(class_mapping_path):
+        import json
+        with open(class_mapping_path, "r") as f:
+            mapping = json.load(f)
+        CLASS_NAMES = mapping.get("classes", CLASS_NAMES)
+        logger.info(f"Loaded {len(CLASS_NAMES)} classes dynamically from {class_mapping_path}")
+    else:
+        logger.warning(f"class_mapping.json not found at {class_mapping_path}, using default 14 classes")
+except Exception as e:
+    logger.error(f"Error loading class_mapping.json: {e}, using default 14 classes")
 
 class ClassifierLoader:
     def __init__(self, model_path: str, enable_gpu: bool = False):
@@ -51,7 +64,8 @@ class ClassifierLoader:
         # Squeeze output to shape (19, 8400)
         out = output0[0]
         boxes = out[0:4, :]     # (4, 8400) (cx, cy, w, h normalized w.r.t 640x640)
-        scores = out[4:19, :]   # (15, 8400) (class confidences)
+        num_classes = len(CLASS_NAMES)
+        scores = out[4 : 4 + num_classes, :]   # (num_classes, 8400) (class confidences)
         
         class_ids = np.argmax(scores, axis=0)
         max_scores = np.max(scores, axis=0)
@@ -140,19 +154,19 @@ class ClassifierLoader:
     def _generate_mock_detections(self) -> list:
         """
         Generates dynamic mock detections representing objects moving on an Indian road.
-        Cattle crosses slowly from left to right, Auto Rickshaw moves slightly.
+        Animal crosses slowly from left to right, Auto Rickshaw moves slightly.
         """
         t = time.time()
-        # A slow 12-second cycle for cattle crossing
+        # A slow 12-second cycle for animal crossing
         phase = (t % 12.0) / 12.0
         
-        # Cattle (hazard object, class_id=7) crossing the road
+        # Animal (hazard object, class_id=8) crossing the road
         cattle_x1 = 0.15 + 0.45 * phase
         cattle_y1 = 0.40 + 0.05 * np.sin(phase * np.pi)
         cattle_x2 = cattle_x1 + 0.28
         cattle_y2 = cattle_y1 + 0.32
         
-        # Auto Rickshaw (vehicle, class_id=6) ahead in lane, weaving slightly
+        # Auto Rickshaw (vehicle, class_id=7) ahead in lane, weaving slightly
         rickshaw_x1 = 0.25 + 0.12 * np.sin(t * 0.8)
         rickshaw_y1 = 0.48
         rickshaw_x2 = rickshaw_x1 + 0.18
@@ -160,8 +174,8 @@ class ClassifierLoader:
         
         detections = [
             {
-                "class_id": 7,
-                "class_name": "cattle",
+                "class_id": 8,
+                "class_name": "animal",
                 "confidence": float(np.clip(0.85 + 0.10 * np.cos(t * 0.3), 0.70, 0.98)),
                 "bbox": [
                     float(np.clip(cattle_x1, 0.0, 1.0)),
@@ -171,7 +185,7 @@ class ClassifierLoader:
                 ]
             },
             {
-                "class_id": 6,
+                "class_id": 7,
                 "class_name": "auto_rickshaw",
                 "confidence": float(np.clip(0.80 + 0.08 * np.sin(t * 0.5), 0.65, 0.95)),
                 "bbox": [

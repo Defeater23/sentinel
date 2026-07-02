@@ -11,3 +11,4 @@ ml/weights/
 fl_updates/
 data/*.npz
 .DS_Store
+ml/weights/
