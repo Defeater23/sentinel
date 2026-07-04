@@ -1,76 +1,77 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 
-const RECONNECT_DELAY_MS = 2000;
-const MAX_RECONNECT_DELAY_MS = 15000;
-
 export function useWebSocket(url) {
   const ws = useRef(null);
   const reconnectTimer = useRef(null);
-  const reconnectAttempts = useRef(0);
-  const mounted = useRef(true);
   const [connected, setConnected] = useState(false);
   const [lastMessage, setLastMessage] = useState(null);
+  const [error, setError] = useState(null);
 
   const connect = useCallback(() => {
-    if (!url || !mounted.current) return;
-
     try {
+      if (ws.current?.readyState === WebSocket.OPEN) return;
+
       ws.current = new WebSocket(url);
-    } catch {
-      scheduleReconnect();
-      return;
-    }
 
-    ws.current.onopen = () => {
-      if (!mounted.current) return;
-      reconnectAttempts.current = 0;
-      setConnected(true);
-    };
+      ws.current.onopen = () => {
+        setConnected(true);
+        setError(null);
+      };
 
-    ws.current.onclose = () => {
-      if (!mounted.current) return;
+      ws.current.onclose = () => {
+        setConnected(false);
+        reconnectTimer.current = setTimeout(connect, 3000);
+      };
+
+      ws.current.onerror = () => {
+        setError("WebSocket connection failed");
+        setConnected(false);
+      };
+
+      ws.current.onmessage = (e) => {
+        try {
+          setLastMessage(e.data);
+        } catch {
+          /* ignore parse errors at message level */
+        }
+      };
+    } catch (err) {
+      setError(err.message || "Failed to connect");
       setConnected(false);
-      scheduleReconnect();
-    };
-
-    ws.current.onerror = () => {
-      ws.current?.close();
-    };
-
-    ws.current.onmessage = (e) => {
-      if (!mounted.current) return;
-      setLastMessage(e.data);
-    };
+      reconnectTimer.current = setTimeout(connect, 3000);
+    }
   }, [url]);
 
-  const scheduleReconnect = useCallback(() => {
-    if (!mounted.current) return;
-    clearTimeout(reconnectTimer.current);
-    const delay = Math.min(
-      RECONNECT_DELAY_MS * Math.pow(1.5, reconnectAttempts.current),
-      MAX_RECONNECT_DELAY_MS
-    );
-    reconnectAttempts.current += 1;
-    reconnectTimer.current = setTimeout(connect, delay);
-  }, [connect]);
-
   useEffect(() => {
-    mounted.current = true;
     connect();
     return () => {
-      mounted.current = false;
       clearTimeout(reconnectTimer.current);
       ws.current?.close();
     };
   }, [connect]);
 
   const sendMessage = useCallback((msg) => {
-    if (ws.current?.readyState === WebSocket.OPEN) {
-      ws.current.send(msg);
-      return true;
+    try {
+      if (ws.current?.readyState === WebSocket.OPEN) {
+        ws.current.send(msg);
+        return true;
+      }
+    } catch {
+      /* silent fail */
     }
     return false;
   }, []);
 
-  return { lastMessage, sendMessage, connected };
+  const sendJson = useCallback(
+    (obj) => {
+      try {
+        return sendMessage(JSON.stringify(obj));
+      } catch {
+        return false;
+      }
+    },
+    [sendMessage]
+  );
+
+  return { lastMessage, sendMessage, sendJson, connected, error };
 }

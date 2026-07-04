@@ -1,33 +1,44 @@
 import { AlertTriangle } from "lucide-react";
-import { riskColor } from "../utils/colors";
 
 export default function AlertBanner({ alert }) {
   if (!alert?.fire) return null;
 
-  const color = riskColor(alert.level || "HIGH");
+  const isCritical = alert.level === "CRITICAL";
+  const isHigh = alert.level === "HIGH";
+
+  const styles = isCritical
+    ? "bg-sentinel-danger-soft border-sentinel-danger text-rose-900 animate-pulse-critical"
+    : isHigh
+    ? "bg-sentinel-warning-soft border-sentinel-warning text-amber-900"
+    : "bg-sentinel-warning-soft border-amber-400 text-amber-900";
+
+  const iconColor = isCritical ? "text-sentinel-danger" : isHigh ? "text-sentinel-warning" : "text-amber-600";
 
   return (
     <div
-      className="w-full rounded-[24px] border p-4 flex flex-col gap-3 bg-[#11151F] border-sentinel-border-subtle"
-      style={{ boxShadow: `0 0 0 1px ${color}10` }}
+      className={`w-full rounded-2xl p-4 sm:p-5 border-2 flex items-start gap-4 transition-all duration-300 ${styles}`}
+      role="alert"
     >
-      <div className="flex items-center gap-3">
-        <div className="flex h-11 w-11 items-center justify-center rounded-2xl" style={{ backgroundColor: `${color}20` }}>
-          <AlertTriangle className="w-5 h-5" style={{ color }} strokeWidth={2.5} />
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold text-white leading-snug">{alert.english}</p>
-          {alert.hindi && <p className="text-sm text-sentinel-muted font-hindi leading-snug mt-1">{alert.hindi}</p>}
-        </div>
-        <span
-          className="rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.35em]"
-          style={{ color, backgroundColor: `${color}16`, border: `1px solid ${color}30` }}
-        >
-          {alert.level}
-        </span>
+      <div className={`flex-shrink-0 p-2 rounded-xl ${isCritical ? "bg-rose-100" : isHigh ? "bg-amber-100" : "bg-amber-50"}`}>
+        <AlertTriangle className={`w-6 h-6 ${iconColor} ${isCritical ? "animate-pulse" : ""}`} />
       </div>
-      <div className="text-[10px] uppercase tracking-[0.4em] text-sentinel-muted">
-        Immediate driver attention recommended
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 mb-1">
+          <span
+            className={`pill-badge text-white ${
+              isCritical ? "bg-sentinel-danger" : isHigh ? "bg-sentinel-warning" : "bg-amber-500"
+            }`}
+          >
+            {alert.level || "ALERT"}
+          </span>
+          <span className="text-xs text-gray-500 font-medium">Voice alert active</span>
+        </div>
+        <p className="font-bold text-base sm:text-lg leading-snug">{alert.english}</p>
+        {alert.hindi && (
+          <p className="hindi-text text-gray-600 text-base sm:text-lg mt-1 leading-snug">
+            {alert.hindi}
+          </p>
+        )}
       </div>
     </div>
   );
