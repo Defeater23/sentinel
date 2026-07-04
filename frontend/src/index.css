@@ -1,0 +1,140 @@
+@import url("https://fonts.googleapis.com/css2?family=Forum&family=Noto+Sans+Devanagari:wght@400;600;700&display=swap");
+@import url("https://fonts.cdnfonts.com/css/museo-100-500-700-900");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-sentinel-bg text-sentinel-ink antialiased;
+    font-family: "Forum", Georgia, "Times New Roman", serif;
+    font-size: 1.05rem;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: "Museo", "MuseoModerno", system-ui, sans-serif;
+  }
+}
+
+@layer components {
+  .site-frame {
+    @apply min-h-screen bg-sentinel-bg md:p-5 lg:p-8;
+  }
+
+  .site-shell {
+    @apply max-w-[1440px] mx-auto bg-sentinel-surface md:rounded-frame overflow-hidden shadow-frame min-h-[calc(100vh-2.5rem)] md:min-h-[calc(100vh-4rem)];
+  }
+
+  .glass-card {
+    @apply bg-white border border-sentinel-border-subtle shadow-glass rounded-3xl;
+  }
+
+  .glass-card-dark {
+    @apply bg-white border border-sentinel-border shadow-glass rounded-3xl;
+  }
+
+  .section-padding {
+    @apply px-4 sm:px-6 lg:px-10 py-16 lg:py-24;
+  }
+
+  .section-title {
+    @apply text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-sentinel-ink;
+    font-family: "Museo", "MuseoModerno", system-ui, sans-serif;
+  }
+
+  .section-subtitle {
+    @apply text-sentinel-muted text-lg max-w-2xl;
+    font-family: "Forum", Georgia, serif;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center gap-2 px-7 py-3.5 rounded-full bg-sentinel-ink text-white font-semibold
+           hover:bg-sentinel-primary-dark transition-all duration-300 hover:shadow-glass-lg hover:-translate-y-0.5;
+    font-family: "Museo", "MuseoModerno", system-ui, sans-serif;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center gap-2 px-7 py-3.5 rounded-full bg-white text-sentinel-ink font-semibold
+           border-2 border-sentinel-ink hover:bg-sentinel-bg-soft transition-all duration-300 hover:-translate-y-0.5;
+    font-family: "Museo", "MuseoModerno", system-ui, sans-serif;
+  }
+
+  .pill-badge {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider;
+    font-family: "Museo", system-ui, sans-serif;
+  }
+
+  .live-dot {
+    @apply w-2 h-2 rounded-full bg-sentinel-accent-dark animate-blink-live;
+  }
+
+  .font-display {
+    font-family: "Museo", "MuseoModerno", system-ui, sans-serif;
+  }
+
+  .font-body {
+    font-family: "Forum", Georgia, serif;
+  }
+
+  .feature-card {
+    @apply relative overflow-hidden cursor-pointer transition-all duration-500 ease-out;
+  }
+
+  .feature-card-active {
+    @apply scale-[1.02] shadow-glass-lg ring-2 ring-sentinel-accent/40;
+  }
+
+  .icon-chip {
+    @apply inline-flex p-3 rounded-xl bg-sentinel-accent-soft text-sentinel-ink;
+  }
+
+  .surface-muted {
+    @apply bg-sentinel-bg-soft border border-sentinel-border-subtle;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll-reveal {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}
+
+@layer utilities {
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-sentinel-ink via-sentinel-accent-dark to-sentinel-accent;
+  }
+
+  .text-gradient-danger {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-sentinel-danger to-sentinel-warning;
+  }
+
+  .hindi-text {
+    font-family: "Noto Sans Devanagari", sans-serif;
+  }
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #e4ebdf;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #a8bca1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #8fa886;
+}
